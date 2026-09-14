@@ -1,4 +1,4 @@
-name: Build installers
+name: Windows + macOS
 
 on:
   workflow_dispatch:

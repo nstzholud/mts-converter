@@ -11,3 +11,4 @@ vendor/mac/*
 *.mts
 *.m2ts
 *.m2t
+.idea/

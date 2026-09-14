@@ -55,13 +55,20 @@ execFileSync(process.execPath, [path.join(root, 'scripts', 'make-icon.mjs')], {
 
 console.log(`\nBuilding ${target.title}...`);
 try {
-  execFileSync(path.join(root, 'node_modules', '.bin', 'electron-builder'), target.args, {
-    cwd: root,
-    stdio: 'inherit',
-    env: process.env,
-  });
-} catch {
-  fail('electron-builder did not finish', 'see its output above');
+  // Run the JS entry directly. `node_modules/.bin/electron-builder` is a Unix
+  // shim — execFileSync cannot launch it on Windows, so CI failed in 1s with
+  // no builder output.
+  execFileSync(
+    process.execPath,
+    [path.join(root, 'node_modules', 'electron-builder', 'cli.js'), ...target.args],
+    {
+      cwd: root,
+      stdio: 'inherit',
+      env: { ...process.env, CSC_IDENTITY_AUTO_DISCOVERY: 'false' },
+    },
+  );
+} catch (err) {
+  fail('electron-builder did not finish', err.message || 'see its output above');
 }
 
 const produced = fs.readdirSync(path.join(root, 'dist')).find(target.matches);

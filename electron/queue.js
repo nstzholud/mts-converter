@@ -7,6 +7,7 @@ const path = require('node:path');
 const { EventEmitter } = require('node:events');
 
 const ffmpeg = require('./ffmpeg');
+const { t } = require('../renderer/i18n');
 
 const CORES = os.cpus().length || 4;
 
@@ -28,10 +29,11 @@ class ConversionQueue extends EventEmitter {
   }
 
   async start(jobs, settings) {
-    if (this.active) throw new Error('Конвертация уже идёт');
+    if (this.active) throw new Error(t(settings?.locale || 'ru', 'err.running'));
 
     this.jobs = jobs;
     this.settings = settings;
+    ffmpeg.setLocale(settings?.locale);
     this.active = true;
     this.stopRequested = false;
     this.logLines = [`Run started ${new Date().toISOString()}`, ''];
@@ -83,7 +85,7 @@ class ConversionQueue extends EventEmitter {
 
   async _process(job) {
     const settings = this.settings;
-    this._update(job, { status: 'running', progress: 0, speed: null, stage: 'Конвертация' });
+    this._update(job, { status: 'running', progress: 0, speed: null, stage: t(settings.locale || 'ru', 'stage.convert') });
 
     const tempPath = `${job.output}.part`;
     try {
@@ -117,7 +119,7 @@ class ConversionQueue extends EventEmitter {
       await task.promise;
       this.running.delete(job.id);
 
-      this._update(job, { progress: 1, stage: 'Проверка' });
+      this._update(job, { progress: 1, stage: t(settings.locale || 'ru', 'stage.verify') });
 
       const result = await ffmpeg.verifyOutput(this.binaries, {
         input: job.input,
@@ -128,7 +130,7 @@ class ConversionQueue extends EventEmitter {
       });
       job.verification = result;
       if (!result.ok) {
-        throw new Error(`Проверка не прошла: ${result.problems.join('; ')}`);
+        throw new Error(t(settings.locale || 'ru', 'err.verify', { problems: result.problems.join('; ') }));
       }
 
       const finalPath = await this._commit(tempPath, job.output, settings.overwrite);

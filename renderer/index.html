@@ -3,23 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;" />
-  <title>Конвертер MTS</title>
+  <title>MTS Converter</title>
   <link rel="stylesheet" href="styles/pixel.css" />
   <link rel="stylesheet" href="styles/app.css" />
 </head>
 <body>
   <div id="app">
     <div class="titlebar">
-      <span class="titlebar__title">КОНВЕРТЕР MTS · MP4</span>
+      <span class="titlebar__title" data-i18n="app.title">MTS CONVERTER · MP4</span>
       <span class="spacer"></span>
+      <div class="lang" id="lang-switch" role="group" data-i18n-title="lang.label" aria-label="Language">
+        <button type="button" class="lang__btn" data-locale="en">EN</button>
+        <button type="button" class="lang__btn" data-locale="ru">RU</button>
+      </div>
       <div class="titlebar__buttons">
-        <button class="titlebar__btn" id="win-min" title="Свернуть" aria-label="Свернуть">
+        <button class="titlebar__btn" id="win-min" data-i18n-title="win.min" title="Minimize" aria-label="Minimize">
           <svg class="icon" viewBox="0 0 16 16"><rect x="3" y="11" width="10" height="3" fill="currentColor"/></svg>
         </button>
-        <button class="titlebar__btn" id="win-max" title="Развернуть" aria-label="Развернуть">
+        <button class="titlebar__btn" id="win-max" data-i18n-title="win.max" title="Maximize" aria-label="Maximize">
           <svg class="icon" viewBox="0 0 16 16"><path d="M2 2h12v12H2V2zm3 3v6h6V5H5z" fill="currentColor"/></svg>
         </button>
-        <button class="titlebar__btn titlebar__btn--close" id="win-close" title="Закрыть" aria-label="Закрыть">
+        <button class="titlebar__btn titlebar__btn--close" id="win-close" data-i18n-title="win.close" title="Close" aria-label="Close">
           <svg class="icon" viewBox="0 0 16 16"><path d="M2 3h3v2H2V3zm3 2h2v2H5V5zm2 2h2v2H7V7zm2-2h2v2H9V5zm2-2h3v2h-3V3zM9 9h2v2H9V9zm2 2h3v2h-3v-2zM5 9h2v2H5V9zm-3 2h3v2H2v-2z" fill="currentColor"/></svg>
         </button>
       </div>
@@ -28,9 +32,9 @@
     <!-- Onboarding -->
     <section class="screen onboarding" id="screen-onboarding" hidden>
       <div class="onboarding__inner">
-        <h1 class="display">Как конвертировать?</h1>
-        <p class="onboarding__lead">
-          Посмотрел ваши файлы и подсветил подходящий способ. Потом можно поменять.
+        <h1 class="display" data-i18n="onboarding.title">How should we convert?</h1>
+        <p class="onboarding__lead" data-i18n="onboarding.lead">
+          I looked at your files and highlighted a matching method. You can change it later.
         </p>
 
         <div class="mode-cards" id="onboarding-cards"></div>
@@ -39,7 +43,7 @@
           <div class="stack small" id="onboarding-analysis-body"></div>
         </div>
 
-        <button class="btn btn--primary btn--big" id="onboarding-confirm">Понятно, поехали</button>
+        <button class="btn btn--primary btn--big" id="onboarding-confirm" data-i18n="onboarding.go">Got it, let’s go</button>
       </div>
     </section>
 
@@ -53,98 +57,93 @@
           <path fill="#5c2a63" d="M9 10h2v4H9zM25 10h2v4h-2z"/>
           <path fill="#c9a7ff" d="M6 18h24v3H6z"/>
         </svg>
-        <div class="dropzone__title display">Перетащите файлы или папку</div>
-        <div class="dropzone__hint small muted">Откуда брать видео</div>
+        <div class="dropzone__title display" data-i18n="dropzone.title">Drop files or a folder</div>
+        <div class="dropzone__hint small muted" data-i18n="dropzone.hint">Where to take the videos from</div>
         <div class="row">
-          <button class="btn" id="pick-files"
-                  data-tip="Открыть окно выбора и отметить нужные видеофайлы по одному.">Выбрать файлы</button>
-          <button class="btn btn--lav" id="pick-folder"
-                  data-tip="Взять сразу всю папку со всем, что внутри. Подходит и для карты памяти камеры — видео найдутся сами, даже если лежат в глубине папок.">Папка с видео</button>
+          <button class="btn" id="pick-files" data-i18n="pick.files" data-i18n-tip="pick.files.tip">Choose files</button>
+          <button class="btn btn--lav" id="pick-folder" data-i18n="pick.folder" data-i18n-tip="pick.folder.tip">Folder of videos</button>
         </div>
       </div>
 
       <div class="panel panel--tight outbox" id="outbox">
-        <div class="outbox__label display"
-             data-tip="Папка, в которую лягут готовые MP4. Исходные файлы никуда не денутся и не изменятся.">
-          Куда сохранять
-          <span class="req-tag" id="outbox-tag">ОБЯЗАТЕЛЬНО</span>
+        <div class="outbox__label display" data-i18n-tip="out.where.tip">
+          <span data-i18n="out.where">Save to</span>
+          <span class="req-tag" id="outbox-tag">REQUIRED</span>
         </div>
-        <div class="outbox__path" id="outbox-path">Папка не выбрана</div>
-        <button class="btn btn--primary" id="pick-output">Выбрать папку</button>
-        <button class="btn btn--small" id="open-output"
-                data-tip="Открыть эту папку в проводнике." hidden>Открыть</button>
+        <div class="outbox__path" id="outbox-path">No folder selected</div>
+        <button class="btn btn--primary" id="pick-output" data-i18n="out.pick">Choose folder</button>
+        <button class="btn btn--small" id="open-output" data-i18n="out.open" data-i18n-tip="out.open.tip" hidden>Open</button>
       </div>
 
       <div class="mode-cards mode-cards--compact" id="main-cards"></div>
 
       <div class="panel files">
         <div class="files__head">
-          <div>Файл</div>
-          <div data-tip="Длительность видео.">Время</div>
-          <div data-tip="Разрешение, формат видео и звука внутри файла.">Что внутри</div>
-          <div>Прогресс</div>
+          <div data-i18n="table.file">File</div>
+          <div data-i18n="table.time" data-i18n-tip="table.time.tip">Time</div>
+          <div data-i18n="table.inside" data-i18n-tip="table.inside.tip">What’s inside</div>
+          <div data-i18n="table.progress">Progress</div>
           <div class="files__head-actions">
-            <span id="files-head-label">Действия</span>
-            <button class="btn btn--small" id="clear-files"
-                    data-tip="Убрать все файлы из списка. Сами файлы на диске останутся на месте." hidden>Очистить всё</button>
+            <span id="files-head-label" data-i18n="table.actions">Actions</span>
+            <button class="btn btn--small" id="clear-files" data-i18n="table.clear" data-i18n-tip="table.clear.tip" hidden>Clear all</button>
           </div>
         </div>
         <div class="files__body" id="files-body">
-          <div class="files__empty">Пока пусто</div>
+          <div class="files__empty" data-i18n="table.empty">Nothing here yet</div>
         </div>
       </div>
 
       <details class="advanced panel panel--tight" id="advanced">
-        <summary data-tip="Тонкая настройка звука и картинки. Если не уверены — не трогайте, здесь уже стоят самые безопасные значения.">Настройки формата</summary>
+        <summary data-i18n="adv.title" data-i18n-tip="adv.tip">Format settings</summary>
 
         <div class="lock-note" id="lock-note" hidden>
           <svg class="icon" viewBox="0 0 16 16"><path fill="#5c2a63" d="M5 3h6v2H5zM3 5h2v2H3zM11 5h2v2h-2zM3 7h10v7H3zM7 9h2v3H7z"/></svg>
-          <span>Идёт конвертация — настройки заблокированы, чтобы файлы не собрались наполовину по-старому. Нажмите «Остановить», если нужно что-то поменять.</span>
+          <span data-i18n="adv.lock">Conversion is running — settings are locked so files are not half-old, half-new. Press Stop if you need to change something.</span>
         </div>
 
         <div class="advanced__grid">
           <div class="advanced__group">
-            <h3 class="display">Звук</h3>
-            <label class="check" data-tip="Звуковая дорожка переносится один в один, как записала камера. Качество идеальное, но формат AC-3 понимают не все плееры и программы для монтажа.">
+            <h3 class="display" data-i18n="adv.audio">Audio</h3>
+            <label class="check" data-i18n-tip="adv.audio.copy.tip">
               <input type="radio" name="audio" value="copy" />
               <span class="check__box"></span>
-              <span>Как в оригинале</span>
+              <span data-i18n="adv.audio.copy">Keep original</span>
             </label>
-            <label class="check" data-tip="Звук пережимается в AAC — его открывает любой телефон, плеер и соцсеть. На слух разницы с оригиналом нет.">
+            <label class="check" data-i18n-tip="adv.audio.aac.tip">
               <input type="radio" name="audio" value="aac" />
               <span class="check__box"></span>
-              <span>AAC — играет везде</span>
+              <span data-i18n="adv.audio.aac">AAC — plays everywhere</span>
             </label>
-            <label class="check" data-tip="В файл кладутся сразу две дорожки: AAC для совместимости и оригинал без изменений. Ничего не теряется, файл чуть больше.">
+            <label class="check" data-i18n-tip="adv.audio.both.tip">
               <input type="radio" name="audio" value="both" />
               <span class="check__box"></span>
-              <span>Обе дорожки</span>
+              <span data-i18n="adv.audio.both">Both tracks</span>
             </label>
           </div>
 
           <div class="advanced__group">
-            <h3 class="display">Картинка</h3>
-            <label class="check" data-tip="Убирает «гребёнку» — рваные горизонтальные полоски, которые видно на быстром движении. Камера пишет видео половинками кадров, а экран компьютера так показывать не умеет.">
+            <h3 class="display" data-i18n="adv.picture">Picture</h3>
+            <label class="check" data-i18n-tip="adv.deint.tip">
               <input type="checkbox" id="opt-deinterlace" />
               <span class="check__box"></span>
-              <span>Убирать чересстрочность</span>
+              <span data-i18n="adv.deint">Remove interlace</span>
             </label>
-            <label class="check" data-tip="Некоторые камеры пишут вытянутые пиксели, из-за чего на разных плеерах картинка выглядит то шире, то уже. Здесь она приводится к обычным квадратным пикселям.">
+            <label class="check" data-i18n-tip="adv.pixels.tip">
               <input type="checkbox" id="opt-normalize" />
               <span class="check__box"></span>
-              <span>Квадратный пиксель</span>
+              <span data-i18n="adv.pixels">Square pixels</span>
             </label>
-            <div class="small muted" data-tip="В режиме «Без перекодирования» картинка вообще не трогается, поэтому эти две галочки на неё не влияют.">Работает только при перекодировании</div>
+            <div class="small muted" data-i18n="adv.encodeOnly" data-i18n-tip="adv.encodeOnly.tip">Only applies when re-encoding</div>
           </div>
 
           <div class="advanced__group">
-            <h3 class="display">Качество</h3>
-            <div class="field" data-tip="Чем меньше число, тем лучше качество и тяжелее файл. 16 — разницу с оригиналом не видно даже на большом экране. Выше 20 уже можно заметить артефакты.">
+            <h3 class="display" data-i18n="adv.quality">Quality</h3>
+            <div class="field" data-i18n-tip="adv.crf.tip">
               <span class="field__label">CRF <span id="crf-value">16</span></span>
               <input type="range" class="range" id="opt-crf" min="12" max="24" step="1" />
               <span class="small muted" id="crf-hint"></span>
             </div>
-            <div class="small muted" id="env-info" data-tip="Версия FFmpeg — это встроенная в программу библиотека, которая и делает всю работу с видео."></div>
+            <div class="small muted" id="env-info" data-i18n-tip="adv.ffmpeg.tip"></div>
           </div>
         </div>
       </details>
@@ -154,13 +153,11 @@
       <svg class="mascot mascot--idle" id="mascot" viewBox="0 0 16 16" aria-hidden="true"></svg>
       <div class="footer__progress">
         <div class="progress progress--big"><div class="progress__fill" id="total-fill"></div></div>
-        <div class="footer__status" id="total-status">Готов к работе</div>
+        <div class="footer__status" id="total-status">Ready</div>
       </div>
-      <button class="btn btn--danger" id="btn-cancel"
-              data-tip="Прервать работу. Уже готовые файлы останутся, недоделанный будет удалён." hidden>Остановить</button>
-      <button class="btn btn--lav" id="btn-open-folder"
-              data-tip="Показать папку с готовыми видео." hidden>Открыть папку</button>
-      <button class="btn btn--primary btn--big" id="btn-start" disabled>Начать</button>
+      <button class="btn btn--danger" id="btn-cancel" data-i18n="footer.cancel" data-i18n-tip="footer.cancel.tip" hidden>Stop</button>
+      <button class="btn btn--lav" id="btn-open-folder" data-i18n="footer.open" data-i18n-tip="footer.open.tip" hidden>Open folder</button>
+      <button class="btn btn--primary btn--big" id="btn-start" disabled>Start</button>
     </footer>
   </div>
 
@@ -168,12 +165,13 @@
 
   <div class="modal-backdrop" id="modal" hidden>
     <div class="modal">
-      <h2 class="display" id="modal-title">Подробности</h2>
+      <h2 class="display" id="modal-title">Details</h2>
       <div class="modal__body" id="modal-body"></div>
       <div class="row row--wrap" id="modal-actions"></div>
     </div>
   </div>
 
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -8,8 +8,13 @@ const path = require('node:path');
 const ffmpeg = require('./ffmpeg');
 const { Settings } = require('./settings');
 const { ConversionQueue, serializeJob } = require('./queue');
+const { t } = require('../renderer/i18n');
 
-app.setName('Конвертер MTS');
+function loc() {
+  return settings?.all.locale === 'en' ? 'en' : 'ru';
+}
+
+app.setName('MTS Converter');
 
 const VIDEO_EXTENSIONS = new Set(['.mts', '.m2ts', '.m2t', '.ts', '.mp4', '.mov', '.avi', '.mpg', '.mpeg', '.m4v']);
 const PRIMARY_EXTENSIONS = new Set(['.mts', '.m2ts', '.m2t', '.ts']);
@@ -65,6 +70,7 @@ function createWindow() {
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
   settings = new Settings(app.getPath('userData'));
+  ffmpeg.setLocale(settings.all.locale);
   binaries = ffmpeg.resolveBinaries(app.getAppPath(), process.resourcesPath);
   queue = new ConversionQueue(binaries);
 
@@ -93,7 +99,11 @@ app.on('window-all-closed', () => {
 // --- Settings ---
 
 ipcMain.handle('settings:get', () => settings.all);
-ipcMain.handle('settings:patch', (_event, partial) => settings.patch(partial));
+ipcMain.handle('settings:patch', (_event, partial) => {
+  const next = settings.patch(partial);
+  ffmpeg.setLocale(next.locale);
+  return next;
+});
 
 // --- Environment ---
 
@@ -135,12 +145,12 @@ ipcMain.on('window:close', () => mainWindow?.close());
 
 ipcMain.handle('dialog:pickFiles', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
-    title: 'Выберите видеофайлы',
+    title: t(loc(), 'dialog.pickFiles'),
     properties: ['openFile', 'multiSelections'],
     filters: [
-      { name: 'Видео с камеры (MTS, M2TS, TS)', extensions: ['mts', 'm2ts', 'm2t', 'ts'] },
-      { name: 'Все видеофайлы', extensions: ['mts', 'm2ts', 'm2t', 'ts', 'mp4', 'mov', 'avi', 'mpg', 'mpeg', 'm4v'] },
-      { name: 'Все файлы', extensions: ['*'] },
+      { name: t(loc(), 'dialog.filterCamera'), extensions: ['mts', 'm2ts', 'm2t', 'ts'] },
+      { name: t(loc(), 'dialog.filterVideo'), extensions: ['mts', 'm2ts', 'm2t', 'ts', 'mp4', 'mov', 'avi', 'mpg', 'mpeg', 'm4v'] },
+      { name: t(loc(), 'dialog.filterAll'), extensions: ['*'] },
     ],
   });
   return result.canceled ? [] : result.filePaths;
@@ -148,7 +158,7 @@ ipcMain.handle('dialog:pickFiles', async () => {
 
 ipcMain.handle('dialog:pickFolder', async (_event, { title } = {}) => {
   const result = await dialog.showOpenDialog(mainWindow, {
-    title: title || 'Выберите папку',
+    title: title || t(loc(), 'dialog.pickFolder'),
     properties: ['openDirectory', 'createDirectory'],
   });
   return result.canceled ? null : result.filePaths[0];
@@ -157,18 +167,16 @@ ipcMain.handle('dialog:pickFolder', async (_event, { title } = {}) => {
 // Never create a missing directory: the path of an unplugged drive would be
 // recreated on the system disk and the output would silently go elsewhere.
 async function checkWritableDir(dir) {
-  if (!dir) return { ok: false, reason: 'Папка не выбрана' };
+  if (!dir) return { ok: false, reason: t(loc(), 'out.missing') };
   try {
     const stat = await fsp.stat(dir);
-    if (!stat.isDirectory()) return { ok: false, reason: 'Это не папка — выберите другую' };
+    if (!stat.isDirectory()) return { ok: false, reason: t(loc(), 'out.notDir') };
     await fsp.access(dir, fs.constants.W_OK);
     return { ok: true, reason: null };
   } catch (err) {
     return {
       ok: false,
-      reason: err.code === 'ENOENT'
-        ? 'Папки больше нет — выберите другую'
-        : 'В папку нельзя записывать — выберите другую',
+      reason: err.code === 'ENOENT' ? t(loc(), 'out.gone') : t(loc(), 'out.readonly'),
     };
   }
 }
@@ -304,13 +312,13 @@ ipcMain.handle('queue:existing', (_event, { ids }) => {
 });
 
 ipcMain.handle('queue:start', async (_event, { ids, overwrite }) => {
-  if (queue.isRunning) throw new Error('Конвертация уже идёт');
+  if (queue.isRunning) throw new Error(t(loc(), 'err.running'));
 
   const config = { ...settings.all, overwrite: Boolean(overwrite) };
   const outputDir = config.outputDir;
   const check = await checkWritableDir(outputDir);
   if (!check.ok) {
-    throw new Error(outputDir ? check.reason : 'Сначала выберите папку для готовых видео');
+    throw new Error(outputDir ? check.reason : t(loc(), 'out.need'));
   }
 
   const jobs = [];
@@ -330,7 +338,7 @@ ipcMain.handle('queue:start', async (_event, { ids, overwrite }) => {
     jobs.push(job);
   }
 
-  if (!jobs.length) throw new Error('Нечего конвертировать');
+  if (!jobs.length) throw new Error(t(loc(), 'err.nothing'));
 
   // The queue only reports a job once it starts, so on a repeat run everything
   // still waiting would keep showing the previous result.

@@ -25,6 +25,32 @@
   text-shadow: 2px 2px 0 var(--pink-dark);
 }
 
+.lang {
+  -webkit-app-region: no-drag;
+  display: flex;
+  gap: 0;
+  border: 4px solid var(--ink);
+  box-shadow: 3px 3px 0 rgba(92, 42, 99, 0.45);
+}
+
+.lang__btn {
+  font-family: var(--font-display);
+  font-size: 9px;
+  line-height: 1;
+  padding: 6px 8px;
+  border: none;
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.lang__btn + .lang__btn { border-left: 4px solid var(--ink); }
+.lang__btn:hover { background: var(--yellow); }
+.lang__btn.is-active {
+  background: var(--ink);
+  color: #fff;
+}
+
 .titlebar__buttons {
   -webkit-app-region: no-drag;
   display: flex;

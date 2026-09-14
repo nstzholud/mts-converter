@@ -1,6 +1,15 @@
 'use strict';
 
 const { spawn } = require('node:child_process');
+const { t } = require('../renderer/i18n');
+
+let locale = 'ru';
+function setLocale(next) {
+  locale = next === 'en' ? 'en' : 'ru';
+}
+function tx(key, vars) {
+  return t(locale, key, vars);
+}
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -66,7 +75,7 @@ function runCapture(bin, args) {
     child.on('error', reject);
     child.on('close', (code) => {
       if (code === 0) resolve(stdout);
-      else reject(new Error(stderr.trim() || `Процесс завершился с кодом ${code}`));
+      else reject(new Error(stderr.trim() || tx('err.probeFail', { code })));
     });
   });
 }
@@ -83,7 +92,7 @@ async function probe(binaries, file) {
   const data = JSON.parse(json);
   const video = (data.streams || []).find((s) => s.codec_type === 'video');
   const audio = (data.streams || []).find((s) => s.codec_type === 'audio');
-  if (!video) throw new Error('В файле нет видеодорожки');
+  if (!video) throw new Error(tx('err.noVideo'));
 
   const sar = parseRatio(video.sample_aspect_ratio) || 1;
   const width = Number(video.width) || 0;
@@ -143,16 +152,22 @@ function analyze(info) {
   const notes = [];
 
   if (!canCopyVideo) {
-    notes.push(`Видео в формате ${info.video.codec.toUpperCase()} — MP4 такое не хранит, нужно перекодирование.`);
+    notes.push({ id: 'note.videoCodec', codec: info.video.codec.toUpperCase() });
   }
   if (!canCopyAudio) {
-    notes.push(`Звук в формате ${info.audio.codec.toUpperCase()} — его придётся перекодировать в AAC.`);
+    notes.push({ id: 'note.audioCodec', codec: info.audio.codec.toUpperCase() });
   }
   if (info.video.interlaced) {
-    notes.push('Видео чересстрочное: без перекодирования на быстром движении возможна «гребёнка».');
+    notes.push({ id: 'note.interlace' });
   }
   if (info.video.sar !== 1) {
-    notes.push(`Пиксель неквадратный (${info.video.width}x${info.video.height} показывается как ${info.video.displayWidth}x${info.video.displayHeight}).`);
+    notes.push({
+      id: 'note.sar',
+      width: info.video.width,
+      height: info.video.height,
+      displayWidth: info.video.displayWidth,
+      displayHeight: info.video.displayHeight,
+    });
   }
 
   return {
@@ -238,7 +253,7 @@ function buildVideoEncodeArgs(info, settings) {
 // verification step knows what it may compare. null means nothing was copied.
 function planAudio(info, settings, analysis) {
   if (!info.audio) {
-    return { mapArgs: [], codecArgs: ['-an'], description: 'без звука', copyIndex: null };
+    return { mapArgs: [], codecArgs: ['-an'], description: tx('audio.none'), copyIndex: null };
   }
 
   const channels = info.audio.channels || 2;
@@ -249,7 +264,7 @@ function planAudio(info, settings, analysis) {
     return {
       mapArgs: ['-map', '0:a'],
       codecArgs: ['-c:a', 'aac', '-b:a', aacBitrate],
-      description: `AAC ${aacBitrate}`,
+      description: tx('audio.aac', { rate: aacBitrate }),
       copyIndex: null,
     };
   }
@@ -259,12 +274,14 @@ function planAudio(info, settings, analysis) {
       mapArgs: ['-map', '0:a:0', '-map', '0:a:0'],
       codecArgs: [
         '-c:a:0', 'aac', '-b:a:0', aacBitrate,
-        '-metadata:s:a:0', 'title=Совместимая дорожка (AAC)',
+        '-metadata:s:a:0', locale === 'en' ? 'title=Compatible track (AAC)' : 'title=Совместимая дорожка (AAC)',
         '-c:a:1', 'copy',
-        '-metadata:s:a:1', `title=Оригинал (${info.audio.codec.toUpperCase()})`,
+        '-metadata:s:a:1', locale === 'en'
+          ? `title=Original (${info.audio.codec.toUpperCase()})`
+          : `title=Оригинал (${info.audio.codec.toUpperCase()})`,
         '-disposition:a:0', 'default',
       ],
-      description: `AAC ${aacBitrate} + оригинал ${info.audio.codec.toUpperCase()}`,
+      description: tx('audio.both', { rate: aacBitrate, codec: info.audio.codec.toUpperCase() }),
       copyIndex: 1,
     };
   }
@@ -272,7 +289,7 @@ function planAudio(info, settings, analysis) {
   return {
     mapArgs: ['-map', '0:a'],
     codecArgs: ['-c:a', 'copy'],
-    description: `оригинал ${info.audio.codec.toUpperCase()} без изменений`,
+    description: tx('audio.copy', { codec: info.audio.codec.toUpperCase() }),
     copyIndex: 0,
   };
 }
@@ -318,11 +335,11 @@ function run(binaries, args, { duration, onProgress, onLog } = {}) {
       if (onLog) onLog(text);
     });
 
-    child.on('error', (err) => reject(new Error(`Не удалось запустить ffmpeg: ${err.message}`)));
+    child.on('error', (err) => reject(new Error(tx('err.ffmpegStart', { message: err.message }))));
 
     child.on('close', (code) => {
       if (cancelled) {
-        const err = new Error('Отменено пользователем');
+        const err = new Error(tx('err.cancelled'));
         err.cancelled = true;
         reject(err);
         return;
@@ -330,7 +347,7 @@ function run(binaries, args, { duration, onProgress, onLog } = {}) {
       if (code === 0) {
         resolve({ stderr });
       } else {
-        const err = new Error(cleanFfmpegError(stderr) || `ffmpeg завершился с кодом ${code}`);
+        const err = new Error(cleanFfmpegError(stderr) || tx('err.probeFail', { code }));
         err.log = stderr;
         reject(err);
       }
@@ -356,21 +373,21 @@ function run(binaries, args, { duration, onProgress, onLog } = {}) {
 }
 
 const ERROR_HINTS = [
-  [/No space left on device/i, 'На диске закончилось место'],
-  [/Permission denied/i, 'Нет прав на запись — выберите другую папку для результатов'],
-  [/Read-only file system/i, 'Диск доступен только для чтения'],
-  [/Invalid data found when processing input/i, 'Файл повреждён или это не видео'],
-  [/moov atom not found/i, 'Файл обрезан или записан не до конца'],
-  [/Unknown encoder/i, 'В этой сборке FFmpeg нет нужного кодировщика'],
-  [/does not contain any stream/i, 'В файле нет ни видео, ни звука'],
-  [/Output file .* does not contain any stream/i, 'Нечего записывать в результат'],
-  [/could not find codec parameters/i, 'Не удалось определить формат содержимого'],
+  [/No space left on device/i, 'err.noSpace'],
+  [/Permission denied/i, 'err.denied'],
+  [/Read-only file system/i, 'err.readonly'],
+  [/Invalid data found when processing input/i, 'err.badInput'],
+  [/moov atom not found/i, 'err.truncated'],
+  [/Unknown encoder/i, 'err.encoder'],
+  [/does not contain any stream/i, 'err.noStream'],
+  [/Output file .* does not contain any stream/i, 'err.noOutStream'],
+  [/could not find codec parameters/i, 'err.codecParams'],
 ];
 
 function cleanFfmpegError(stderr) {
   const text = stderr || '';
-  for (const [pattern, message] of ERROR_HINTS) {
-    if (pattern.test(text)) return message;
+  for (const [pattern, key] of ERROR_HINTS) {
+    if (pattern.test(text)) return tx(key);
   }
   const lines = text
     .split('\n')
@@ -412,17 +429,17 @@ async function verifyOutput(binaries, { input, output, mode, info, audioPlan }) 
   try {
     outInfo = await probe(binaries, output);
   } catch (err) {
-    return { ok: false, problems: [`Результат не читается: ${err.message}`], details };
+    return { ok: false, problems: [tx('verify.unreadable', { message: err.message })], details };
   }
 
   const durationDelta = Math.abs(outInfo.duration - info.duration);
   if (durationDelta > 0.5) {
-    problems.push(`Длительность разошлась на ${durationDelta.toFixed(2)} с`);
+    problems.push(tx('verify.durationOff', { delta: durationDelta.toFixed(2) }));
   }
-  details.push(`длительность ${formatDuration(outInfo.duration)}`);
+  details.push(tx('verify.duration', { value: formatDuration(outInfo.duration) }));
 
   if (info.audio && !outInfo.audio) {
-    problems.push('В результате нет звуковой дорожки');
+    problems.push(tx('verify.noAudio'));
   }
 
   if (mode === 'copy') {
@@ -431,16 +448,19 @@ async function verifyOutput(binaries, { input, output, mode, info, audioPlan }) 
       streamStats(binaries, output, 'v:0'),
     ]);
     if (srcVideo.digest !== outVideo.digest) {
-      problems.push(
-        `Видеоданные отличаются: было ${srcVideo.packets} кадров / ${srcVideo.bytes} Б, стало ${outVideo.packets} / ${outVideo.bytes} Б`,
-      );
+      problems.push(tx('verify.videoDiff', {
+        srcPackets: srcVideo.packets,
+        srcBytes: srcVideo.bytes,
+        outPackets: outVideo.packets,
+        outBytes: outVideo.bytes,
+      }));
     } else {
-      details.push(`видео перенесено байт в байт (${srcVideo.packets} кадров)`);
+      details.push(tx('verify.videoCopy', { n: srcVideo.packets }));
     }
   } else {
-    details.push(`видео ${outInfo.video.width}x${outInfo.video.height}`);
+    details.push(tx('verify.videoSize', { width: outInfo.video.width, height: outInfo.video.height }));
     if (outInfo.video.frameRate) {
-      details.push(`${outInfo.video.frameRate.toFixed(2)} кадр/с`);
+      details.push(tx('verify.fps', { fps: outInfo.video.frameRate.toFixed(2) }));
     }
   }
 
@@ -454,12 +474,12 @@ async function verifyOutput(binaries, { input, output, mode, info, audioPlan }) 
         streamStats(binaries, output, `a:${copyIndex}`),
       ]);
       if (srcAudio.digest !== outAudio.digest) {
-        problems.push('Звуковые данные отличаются от исходных');
+        problems.push(tx('verify.audioDiff'));
       } else {
-        details.push('звук перенесён байт в байт');
+        details.push(tx('verify.audioCopy'));
       }
     } else if (outInfo.audio) {
-      details.push(`звук пережат в ${outInfo.audio.codec.toUpperCase()}`);
+      details.push(tx('verify.audioAac', { codec: outInfo.audio.codec.toUpperCase() }));
     }
   }
 
@@ -478,6 +498,7 @@ function formatDuration(seconds) {
 }
 
 module.exports = {
+  setLocale,
   resolveBinaries,
   probe,
   analyze,

@@ -11,6 +11,7 @@ const DEFAULTS = {
   crf: 16,
   deinterlace: true,
   normalizePixels: true,
+  locale: 'ru',
   windowBounds: null,
 };
 

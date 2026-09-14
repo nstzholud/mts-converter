@@ -1,12 +1,16 @@
-# Конвертер MTS → MP4
+# MTS → MP4 Converter
 
 <p align="center">
-  <img src="docs/screenshots/icon.png" width="96" height="96" alt="Иконка — розовый пиксельный кот">
+  <img src="docs/screenshots/icon.png" width="96" height="96" alt="Pink pixel-art cat icon">
 </p>
 
 <p align="center">
-  <strong>Маленькая программа для пакетной конвертации видео с камеры в MP4.</strong><br>
-  Без командной строки, без установки FFmpeg руками, с упором на качество картинки и звука.
+  <strong>A small desktop app that batch-converts camera MTS/M2TS files to MP4.</strong><br>
+  No command line. No separate FFmpeg install. Quality of picture and sound comes first.
+</p>
+
+<p align="center">
+  <a href="README.ru.md">Русский</a> · English
 </p>
 
 <p align="center">
@@ -16,103 +20,105 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/01-start.png" alt="Главный экран: выбор файлов, папка для результата и два режима">
+  <img src="docs/screenshots/01-start.png" alt="Main window: drop zone, output folder, and two conversion modes">
 </p>
 
-## Зачем это
+The UI is bilingual. Switch **EN / RU** in the title bar. Russian is the default so a non-technical customer can use it as-is.
 
-Камера пишет `.MTS` / `.M2TS`. Компьютер и телефон такой файл открывают через раз, а онлайн-конвертеры часто пережимают картинку «на всякий случай». Эта программа сначала смотрит, что внутри файла:
+## Why
 
-- если видео и звук уже умеют жить в MP4 — они **перекладываются байт в байт**, без перекодирования;
-- если нужна «гребёнка» или неквадратный пиксель — файл **собирается заново** так, чтобы на экране выглядеть правильно, а не «чуть хуже, зато быстрее».
+Camcorders write `.MTS` / `.M2TS`. Computers and phones open those files inconsistently, and online converters often re-encode “just in case”. This app looks inside the file first:
 
-Исходники с камеры не трогаются. Готовые MP4 кладутся в папку, которую вы выбираете сами.
+- if video and audio already fit in MP4, they are **copied byte for byte**;
+- if the clip is interlaced or anamorphic, it is **rebuilt** so it looks right on a progressive display.
 
-## Что умеет
+Camera originals are never modified. Finished MP4 files go into a folder you choose.
 
-- Пакет: файлы по одному, целая папка или карта памяти камеры (ищет видео даже в `BDMV/STREAM`)
-- Два режима: **без перекодирования** и **с перекодированием**
-- Звук: как в оригинале, AAC «играет везде», или обе дорожки сразу
-- Обязательная папка для результата — конвертация не стартует, пока её нет
-- Повторный прогон спрашивает: **заменить** прошлые MP4 или **оставить оба**
-- Кириллица в именах файлов
-- Один клик: установщик Windows с ярлыком на рабочем столе, на Mac — перетащить в Программы
+## Features
 
-## Как поставить
+- Batch: individual files, a whole folder, or a camera card (walks into `BDMV/STREAM`)
+- Two modes: **no re-encode** and **re-encode**
+- Audio: original, AAC that plays everywhere, or both tracks
+- Output folder is required — conversion will not start without it
+- A repeat run asks whether to **replace** previous MP4s or **keep both**
+- Cyrillic file names
+- One-click Windows installer with a desktop shortcut; on Mac, drag into Applications
 
-Готовые сборки лежат в [Releases](https://github.com/nstzholud/mts-converter/releases).
+## Install
+
+Builds are on [Releases](https://github.com/nstzholud/mts-converter/releases).
 
 ### Windows
 
-1. Скачайте `Konverter-MTS-Setup-x.y.z.exe`
-2. Запустите установщик — ярлык появится на рабочем столе и в меню Пуск
-3. Если SmartScreen спросит про «неизвестного издателя»: **Подробнее → Выполнить в любом случае**  
-   Подписи Microsoft у программы нет, это ожидаемо.
+1. Download `Konverter-MTS-Setup-x.y.z.exe`
+2. Run it — a shortcut appears on the desktop and in the Start menu
+3. If SmartScreen warns about an unknown publisher: **More info → Run anyway**  
+   There is no Microsoft signature. That is expected.
 
 ### macOS
 
-1. Скачайте `Konverter-MTS-x.y.z-arm64.dmg` (Apple Silicon) или сборку с `x64` (Intel)
-2. Откройте диск и перетащите приложение в **Программы**
-3. При первом запуске: правый клик → **Открыть**. Gatekeeper ругнётся на ad-hoc подпись — это тоже ожидаемо.
+1. Download `Konverter-MTS-x.y.z-arm64.dmg` (Apple Silicon) or the `x64` build (Intel)
+2. Open the disk image and drag the app into **Applications**
+3. First launch: right-click → **Open**. Gatekeeper will complain about the ad-hoc signature. That is expected.
 
-## Как пользоваться
+## How to use
 
-1. Перетащите файлы или папку, либо нажмите **Выбрать файлы** / **Папка с видео**
-2. Укажите **куда сохранять** готовые MP4
-3. Оставьте режим, который программа подсветила как «Советую», или выберите сами
-4. Нажмите **Начать**
+1. Drop files or a folder, or press **Choose files** / **Folder of videos**
+2. Set **Save to**
+3. Keep the mode marked **SUGGESTED**, or pick the other one
+4. Press **Start**
 
-Если в папке уже лежат видео с теми же именами, программа спросит, заменить их или положить новые рядом — `видео (2).mp4`.
+If the output folder already has files with the same names, the app asks whether to replace them or keep both (`video (2).mp4`).
 
-Настройки формата можно не трогать. Там уже стоят безопасные значения. Во время работы они блокируются, чтобы один файл не собрался «наполовину по-старому».
+You can leave Format settings alone. Safe defaults are already set. While a run is in progress they lock, so a file cannot be built half-old, half-new.
 
-## Собрать из исходников
+## Build from source
 
-Нужны Node.js 22+ и npm.
+Needs Node.js 22+ and npm.
 
 ```bash
-git clone git@github.com-nstzholud:nstzholud/mts-converter.git
+git clone https://github.com/nstzholud/mts-converter.git
 cd mts-converter
 npm ci
 ```
 
-Скачать встроенный FFmpeg один раз:
+Download bundled FFmpeg once:
 
 ```bash
-npm run vendor:mac          # эта машина
+npm run vendor:mac
 npm run vendor:mac -- --intel
-npm run vendor:win          # для Windows-установщика, можно с Mac
+npm run vendor:win
 ```
 
-Запуск в режиме разработки:
+Development:
 
 ```bash
 npm start
 ```
 
-Установщики:
+Installers:
 
 ```bash
 npm run build:mac           # dist/Konverter-MTS-1.0.0-arm64.dmg
 npm run build:win           # dist/Konverter-MTS-Setup-1.0.0.exe
 ```
 
-Windows-установщик также собирается в GitHub Actions по тегу `v*`.
+The Windows installer is also built by GitHub Actions on a `v*` tag.
 
-## Версии
+## Versioning
 
-Номер версии живёт в `package.json` и совпадает с тегом релиза.
+The version lives in `package.json` and matches the release tag.
 
-| Версия | Что это |
+| Version | Meaning |
 | --- | --- |
-| `1.0.0` | первая публичная сборка |
-| тег `v1.0.0` | то же число, с буквы `v` — так GitHub Releases и Actions узнают релиз |
+| `1.0.0` | first public build |
+| tag `v1.0.0` | same number, prefixed with `v` — Releases and Actions key off this |
 
-Как выпустить следующую:
+To ship the next one:
 
-1. Поднять версию в `package.json`
-2. Дописать секцию в [CHANGELOG.md](CHANGELOG.md)
-3. Закоммитить, поставить тег, отправить его на GitHub:
+1. Bump `package.json`
+2. Add a section in [CHANGELOG.md](CHANGELOG.md)
+3. Commit, tag, push:
 
 ```bash
 git tag -a v1.1.0 -m "v1.1.0"
@@ -120,20 +126,20 @@ git push origin main
 git push origin v1.1.0
 ```
 
-По тегу Actions соберёт Windows-установщик. macOS DMG собирается локально: `npm run build:mac`.
+The tag builds the Windows installer. The macOS DMG is built locally with `npm run build:mac`.
 
-## Структура
+## Layout
 
 ```
-electron/     основной процесс, очередь, ffmpeg
-renderer/     интерфейс
-scripts/      иконка, скачивание FFmpeg, сборка
-vendor/       бинарники FFmpeg (скачиваются, в git не лежат)
-docs/         скриншоты для README
+electron/     main process, queue, ffmpeg
+renderer/     UI and translations (EN / RU)
+scripts/      icon, FFmpeg download, packaging
+vendor/       FFmpeg binaries (downloaded, not in git)
+docs/         README screenshots
 ```
 
-## Лицензия
+## License
 
-Код приложения — [MIT](LICENSE).
+Application source is [MIT](LICENSE).
 
-В установщики входит FFmpeg, собранный с `--enable-gpl`. Он запускается отдельным процессом, приложение к нему не линкуется. Текст GPL v2 и остальные уведомления — в [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt).
+Installers ship FFmpeg built with `--enable-gpl`. It runs as a separate process; the app does not link against it. GPL v2 and other notices are in [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt).

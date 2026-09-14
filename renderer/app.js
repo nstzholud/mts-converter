@@ -13,12 +13,27 @@ const state = {
   runningIds: new Set(),
   lastOutputPath: null,
   outputDirOk: false,
-  outputDirReason: 'Папка не выбрана',
+  outputDirReason: '',
 };
 
-// --- Mascot ---
+function locale() {
+  return state.settings?.locale === 'en' ? 'en' : 'ru';
+}
 
-const LOCKED_MESSAGE = 'Идёт конвертация — настройки заблокированы. Нажмите «Остановить», чтобы их поменять';
+function t(key, vars) {
+  return window.I18n.t(locale(), key, vars);
+}
+
+function filesWord(n) {
+  if (locale() === 'en') {
+    return `${n} ${t(n === 1 ? 'word.file.one' : 'word.file.other')}`;
+  }
+  return plural(n, t('word.file.one'), t('word.file.few'), t('word.file.many'));
+}
+
+function lockedMessage() {
+  return t('adv.lock.short');
+}
 
 const MASCOT_BASE = [
   '................',
@@ -66,39 +81,46 @@ const ICONS = {
   stop: '<svg class="icon" viewBox="0 0 16 16"><path fill="#5c2a63" d="M4 4h8v8H4z"/></svg>',
 };
 
-const STATUS_META = {
-  pending: { label: 'В очереди', icon: ICONS.hourglass, cls: 'pending' },
-  running: { label: 'Идёт', icon: ICONS.gear, cls: 'running' },
-  done: { label: 'Готово', icon: ICONS.heart, cls: 'done' },
-  error: { label: 'Ошибка', icon: ICONS.broken, cls: 'error' },
-  skipped: { label: 'Пропущен', icon: ICONS.skip, cls: 'skipped' },
-  cancelled: { label: 'Остановлен', icon: ICONS.stop, cls: 'cancelled' },
-};
+function statusMeta(status) {
+  const icons = {
+    pending: ICONS.hourglass,
+    running: ICONS.gear,
+    done: ICONS.heart,
+    error: ICONS.broken,
+    skipped: ICONS.skip,
+    cancelled: ICONS.stop,
+  };
+  return {
+    label: t(`status.${status}`),
+    icon: icons[status] || ICONS.hourglass,
+    cls: status,
+  };
+}
 
-// --- Modes ---
-
-const MODES = {
-  copy: {
-    title: 'Без перекодирования',
-    summary: 'Байт в байт, секунды на файл',
-    desc: 'Видео и звук переносятся в MP4 байт в байт. Качество не меняется вообще — это та же картинка в другой обёртке.',
-    tip: 'Содержимое файла просто перекладывается из одной обёртки в другую: ни один кадр не пересчитывается. Потерять качество тут физически невозможно, и работает это за секунды. Минус один — «гребёнка» на движении, если камера писала чересстрочно, никуда не денется.',
-    facts: [
-      ['Качество', 'как в оригинале'],
-      ['Нюанс', 'чересстрочность остаётся'],
-    ],
-  },
-  deinterlace: {
-    title: 'С перекодированием',
-    summary: 'Без «гребёнки», 60 плавных кадров',
-    desc: 'Убирает «гребёнку» на движении и делает 60 плавных кадров в секунду. Картинка пересобирается заново, но разницы не видно.',
-    tip: 'Видео собирается заново: пропадают рваные полоски на движении, а вместо 30 кадров получается 60 плавных. Считается дольше и файл выходит крупнее, зато на компьютере и телефоне картинка выглядит правильно.',
-    facts: [
-      ['Качество', 'визуально неотличимо'],
-      ['Нюанс', 'дольше, файл крупнее'],
-    ],
-  },
-};
+function modes() {
+  return {
+    copy: {
+      title: t('mode.copy.title'),
+      summary: t('mode.copy.summary'),
+      desc: t('mode.copy.desc'),
+      tip: t('mode.copy.tip'),
+      facts: [
+        [t('mode.fact.quality'), t('mode.copy.quality')],
+        [t('mode.fact.note'), t('mode.copy.note')],
+      ],
+    },
+    deinterlace: {
+      title: t('mode.enc.title'),
+      summary: t('mode.enc.summary'),
+      desc: t('mode.enc.desc'),
+      tip: t('mode.enc.tip'),
+      facts: [
+        [t('mode.fact.quality'), t('mode.enc.quality')],
+        [t('mode.fact.note'), t('mode.enc.note')],
+      ],
+    },
+  };
+}
 
 // --- Tooltips ---
 
@@ -153,7 +175,7 @@ function hideTip() {
 
 function formatSize(bytes) {
   if (!bytes) return '—';
-  const units = ['Б', 'КБ', 'МБ', 'ГБ'];
+  const units = [t('unit.b'), t('unit.kb'), t('unit.mb'), t('unit.gb')];
   let value = bytes;
   let i = 0;
   while (value >= 1024 && i < units.length - 1) {
@@ -176,12 +198,12 @@ function formatDuration(seconds) {
 
 function formatEta(seconds) {
   if (!Number.isFinite(seconds) || seconds <= 0) return '';
-  if (seconds < 60) return 'меньше минуты';
+  if (seconds < 60) return t('eta.ltMin');
   const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `примерно ${minutes} мин`;
+  if (minutes < 60) return t('eta.min', { n: minutes });
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
-  return rest ? `примерно ${hours} ч ${rest} мин` : `примерно ${hours} ч`;
+  return rest ? t('eta.hrMin', { h: hours, m: rest }) : t('eta.hr', { h: hours });
 }
 
 function plural(n, one, few, many) {
@@ -243,7 +265,7 @@ function closeModal(value = null) {
 }
 
 function showModal(title, html) {
-  openModal(title, html, [{ label: 'Закрыть', value: null }]);
+  openModal(title, html, [{ label: t('modal.close'), value: null }]);
 }
 
 // --- Mode cards ---
@@ -251,11 +273,11 @@ function showModal(title, html) {
 function renderModeCards(container, { showRecommendation } = {}) {
   if (!container) return;
   const recommended = recommendedMode();
-  container.innerHTML = Object.entries(MODES)
+  container.innerHTML = Object.entries(modes())
     .map(([key, mode]) => {
       const selected = state.settings.mode === key ? ' is-selected' : '';
       const tag = showRecommendation && recommended === key
-        ? '<span class="recommend-tag">СОВЕТУЮ</span>'
+        ? `<span class="recommend-tag">${t('mode.recommend')}</span>`
         : '';
       const facts = mode.facts
         .map(([k, v]) => `<div class="mode-card__fact"><span class="muted">${k}:</span> <b>${v}</b></div>`)
@@ -277,7 +299,7 @@ function renderModeCards(container, { showRecommendation } = {}) {
   container.querySelectorAll('.mode-card').forEach((card) => {
     const choose = () => {
       if (state.running) {
-        toast(LOCKED_MESSAGE, 'error');
+        toast(lockedMessage(), 'error');
         return;
       }
       patchSettings({ mode: card.dataset.mode });
@@ -335,12 +357,12 @@ function renderOutputDir() {
   const ready = outputDirReady();
 
   $('#outbox').classList.toggle('is-required', !ready);
-  $('#outbox-tag').textContent = ready ? 'ВЫБРАНА' : 'ОБЯЗАТЕЛЬНО';
+  $('#outbox-tag').textContent = ready ? t('out.chosen') : t('out.required');
   $('#outbox-path').innerHTML = ready
     ? splitPathHtml(dir)
-    : `<span>${escapeHtml(dir ? state.outputDirReason : 'Папка не выбрана')}</span>`;
+    : `<span>${escapeHtml(dir ? state.outputDirReason : t('out.empty'))}</span>`;
   $('#outbox-path').title = dir || '';
-  $('#pick-output').textContent = ready ? 'Сменить' : 'Выбрать папку';
+  $('#pick-output').textContent = ready ? t('out.change') : t('out.pick');
   $('#open-output').hidden = !ready;
 
   updateStartButton();
@@ -355,7 +377,7 @@ function splitPathHtml(dir) {
 
 async function refreshOutputDir() {
   const dir = state.settings.outputDir;
-  const check = dir ? await window.api.checkDir(dir) : { ok: false, reason: 'Папка не выбрана' };
+  const check = dir ? await window.api.checkDir(dir) : { ok: false, reason: t('out.missing') };
   state.outputDirOk = check.ok;
   state.outputDirReason = check.reason;
   renderOutputDir();
@@ -366,10 +388,10 @@ function updateCrfHint() {
   const crf = Number($('#opt-crf').value);
   $('#crf-value').textContent = crf;
   $('#crf-hint').textContent =
-    crf <= 14 ? 'Почти без потерь, файлы крупные'
-      : crf <= 17 ? 'Разницы с оригиналом не видно'
-        : crf <= 20 ? 'Хорошо, файлы легче'
-          : 'Экономно, возможны артефакты';
+    crf <= 14 ? t('crf.near')
+      : crf <= 17 ? t('crf.same')
+        : crf <= 20 ? t('crf.good')
+          : t('crf.save');
 }
 
 // --- File list ---
@@ -383,7 +405,7 @@ function renderJobs() {
   $('#files-head-label').hidden = !$('#clear-files').hidden;
 
   if (!jobs.length) {
-    body.innerHTML = '<div class="files__empty">Пока пусто</div>';
+    body.innerHTML = `<div class="files__empty">${t('table.empty')}</div>`;
     updateStartButton();
     return;
   }
@@ -396,13 +418,13 @@ function renderJobs() {
 }
 
 function jobRowHtml(job) {
-  const meta = STATUS_META[job.status] || STATUS_META.pending;
+  const meta = statusMeta(job.status);
   const info = job.info;
   const mode = plannedModeFor(job);
 
   const inside = info
-    ? `${info.displayWidth}x${info.displayHeight}${info.interlaced ? ' · чересстрочное' : ''}<br />${info.codec.toUpperCase()}${info.audioCodec ? ` + ${info.audioCodec.toUpperCase()} ${info.audioChannels}ch` : ''}`
-    : '<span class="muted">не удалось прочитать</span>';
+    ? `${info.displayWidth}x${info.displayHeight}${info.interlaced ? ` · ${t('row.interlaced')}` : ''}<br />${info.codec.toUpperCase()}${info.audioCodec ? ` + ${info.audioCodec.toUpperCase()} ${info.audioChannels}ch` : ''}`
+    : `<span class="muted">${t('row.unreadable')}</span>`;
 
   const percent = Math.round((job.progress || 0) * 100);
   let progressCell;
@@ -410,32 +432,32 @@ function jobRowHtml(job) {
     progressCell = `
       <div class="file-progress">
         <div class="progress"><div class="progress__fill" style="width:${percent}%"></div></div>
-        <div class="file-progress__meta">${job.stage || 'Конвертация'} · ${percent}%${job.speed ? ` · ${job.speed.toFixed(1)}x` : ''}</div>
+        <div class="file-progress__meta">${job.stage || t('stage.convert')} · ${percent}%${job.speed ? ` · ${job.speed.toFixed(1)}x` : ''}</div>
       </div>`;
   } else if (job.status === 'done') {
-    const headline = job.plannedMode === 'copy' ? 'Без потерь ✓' : 'Готово ✓';
-    const tooltip = [...(job.verification?.details || []), `было ${formatSize(job.inputSize)}`].join(', ');
+    const headline = job.plannedMode === 'copy' ? t('row.lossless') : t('row.done');
+    const tooltip = [...(job.verification?.details || []), t('row.was', { size: formatSize(job.inputSize) })].join(', ');
     progressCell = `<div class="file-progress__meta" title="${escapeHtml(tooltip)}">${headline}<br />${formatSize(job.outputSize)}</div>`;
   } else if (job.status === 'error') {
-    progressCell = `<div class="file-progress__meta" style="color:var(--coral-dark)">${escapeHtml(job.error || 'Ошибка')}</div>`;
+    progressCell = `<div class="file-progress__meta" style="color:var(--coral-dark)">${escapeHtml(job.error || t('status.error'))}</div>`;
   } else if (job.status === 'skipped') {
-    progressCell = '<div class="file-progress__meta">Уже есть</div>';
+    progressCell = `<div class="file-progress__meta">${t('row.exists')}</div>`;
   } else {
-    progressCell = `<div class="file-progress__meta muted">${mode === 'copy' ? 'Копия без потерь' : 'Перекодирование'}</div>`;
+    progressCell = `<div class="file-progress__meta muted">${mode === 'copy' ? t('row.copy') : t('row.encode')}</div>`;
   }
 
   const actions = [];
   if (job.status === 'done') {
-    actions.push(`<button class="btn btn--small" data-action="reveal" data-id="${job.id}">Показать</button>`);
+    actions.push(`<button class="btn btn--small" data-action="reveal" data-id="${job.id}">${t('row.show')}</button>`);
   }
   if (job.status === 'error' && job.log) {
-    actions.push(`<button class="btn btn--small" data-action="log" data-id="${job.id}">Детали</button>`);
+    actions.push(`<button class="btn btn--small" data-action="log" data-id="${job.id}">${t('row.details')}</button>`);
   }
   if (!state.running && job.status !== 'running') {
-    actions.push(`<button class="btn btn--small" data-action="remove" data-id="${job.id}">Убрать</button>`);
+    actions.push(`<button class="btn btn--small" data-action="remove" data-id="${job.id}">${t('row.remove')}</button>`);
   }
   if (state.running && (job.status === 'running' || job.status === 'pending')) {
-    actions.push(`<button class="btn btn--small" data-action="cancel" data-id="${job.id}">Стоп</button>`);
+    actions.push(`<button class="btn btn--small" data-action="cancel" data-id="${job.id}">${t('row.stop')}</button>`);
   }
 
   const rowClass = ['file-row', `is-${job.status}`].join(' ');
@@ -476,8 +498,8 @@ function handleRowAction(action, id) {
     window.api.queue.cancelJob(id);
   } else if (action === 'log') {
     showModal(
-      `Что сказал ffmpeg: ${job.name}`,
-      `<p>${escapeHtml(job.error || '')}</p><div class="log-box">${escapeHtml(job.log || 'Лог пуст')}</div>`,
+      t('modal.logTitle', { name: job.name }),
+      `<p>${escapeHtml(job.error || '')}</p><div class="log-box">${escapeHtml(job.log || t('modal.logEmpty'))}</div>`,
     );
   }
 }
@@ -496,24 +518,24 @@ function updateStartButton() {
 
   button.disabled = state.running || jobs.length === 0 || needFolder;
   button.textContent = state.running
-    ? 'Идёт работа'
+    ? t('footer.working')
     : needFolder && jobs.length
-      ? 'Нужна папка'
+      ? t('footer.needFolder')
       : redo
-        ? 'Сделать заново'
+        ? t('footer.again')
         : jobs.length > 1
-          ? `Начать · ${jobs.length}`
-          : 'Начать';
+          ? t('footer.startN', { n: jobs.length })
+          : t('footer.start');
 
   button.dataset.tip = state.running
-    ? 'Конвертация уже идёт. Дождитесь конца или нажмите «Остановить».'
+    ? t('start.tip.run')
     : !jobs.length
-      ? 'Сначала добавьте видеофайлы — перетащите их в окно или нажмите «Выбрать файлы».'
+      ? t('start.tip.empty')
       : needFolder
-        ? 'Сначала укажите папку, куда сохранять готовые видео.'
+        ? t('start.tip.folder')
         : redo
-          ? 'Прогнать все файлы из списка заново.'
-          : `Начать конвертацию: ${plural(jobs.length, 'файл', 'файла', 'файлов')}. Исходники не изменятся.`;
+          ? t('start.tip.again')
+          : t('start.tip.go', { files: filesWord(jobs.length) });
 }
 
 // --- Adding files ---
@@ -522,7 +544,7 @@ async function addPaths(paths) {
   if (!paths.length || state.running) return;
 
   const status = $('#total-status');
-  status.textContent = 'Читаю файлы…';
+  status.textContent = t('footer.reading');
   drawMascot('busy');
 
   try {
@@ -542,14 +564,14 @@ async function addPaths(paths) {
 
     const unreadable = added.filter((j) => !j.info).length;
     if (added.length) {
-      toast(`Добавлено ${plural(added.length, 'файл', 'файла', 'файлов')}`, 'good');
+      toast(t('toast.added', { files: filesWord(added.length) }), 'good');
     } else if (!skipped) {
-      toast('Видеофайлы не найдены', 'error');
+      toast(t('toast.none'), 'error');
     }
-    if (skipped) toast(`${skipped} уже было в списке`);
-    if (unreadable) toast(`Не читается: ${unreadable}`, 'error');
+    if (skipped) toast(t('toast.dup', { n: skipped }));
+    if (unreadable) toast(t('toast.unread', { n: unreadable }), 'error');
   } catch (err) {
-    toast(`Не удалось добавить файлы: ${err.message}`, 'error');
+    toast(t('toast.addFail', { message: err.message }), 'error');
   } finally {
     drawMascot('idle');
     updateTotals();
@@ -560,26 +582,26 @@ async function addPaths(paths) {
 
 async function askOverwrite(names) {
   const shown = names.slice(0, 6).map((n) => `<div>· ${escapeHtml(n)}</div>`).join('');
-  const rest = names.length > 6 ? `<div class="muted">и ещё ${names.length - 6}</div>` : '';
+  const rest = names.length > 6 ? `<div class="muted">${t('overwrite.more', { n: names.length - 6 })}</div>` : '';
 
   return openModal(
-    'Такие видео уже готовы',
-    `<p>В папке для результатов уже лежит ${plural(names.length, 'файл', 'файла', 'файлов')} с теми же именами:</p>
+    t('overwrite.title'),
+    `<p>${t('overwrite.body', { files: filesWord(names.length) })}</p>
      <div class="stack small">${shown}${rest}</div>
-     <p>Заменить их новыми или оставить и старые, и новые?</p>`,
+     <p>${t('overwrite.ask')}</p>`,
     [
-      { label: 'Отмена', value: null, cls: 'btn--ghost' },
+      { label: t('overwrite.cancel'), value: null, cls: 'btn--ghost' },
       {
-        label: 'Оставить оба',
+        label: t('overwrite.keep'),
         value: 'keep',
         cls: 'btn--lav',
-        tip: 'Прошлые файлы останутся на месте, новые лягут рядом с номером в скобках.',
+        tip: t('overwrite.keep.tip'),
       },
       {
-        label: 'Заменить',
+        label: t('overwrite.replace'),
         value: 'replace',
         cls: 'btn--primary',
-        tip: 'Прошлые готовые видео будут перезаписаны новыми. Исходники с камеры не тронутся.',
+        tip: t('overwrite.replace.tip'),
       },
     ],
   );
@@ -590,7 +612,7 @@ async function startConversion() {
   if (!ids.length) return;
 
   if (!(await refreshOutputDir())) {
-    toast('Сначала выберите папку для готовых видео', 'error');
+    toast(t('out.need'), 'error');
     $('#outbox').scrollIntoView({ block: 'nearest' });
     return;
   }
@@ -655,7 +677,7 @@ function updateTotals() {
 
   if (!jobs.length) {
     $('#total-fill').style.width = '0%';
-    $('#total-status').textContent = 'Готов к работе';
+    $('#total-status').textContent = t('footer.ready');
     return;
   }
 
@@ -678,8 +700,8 @@ function updateTotals() {
   if (!state.running) {
     const done = jobs.filter((j) => j.status === 'done').length;
     $('#total-status').textContent = done
-      ? `Готово: ${done} из ${jobs.length}`
-      : `${plural(jobs.length, 'файл', 'файла', 'файлов')} · ${formatDuration(totalDuration)}`;
+      ? t('footer.doneOf', { done, total: jobs.length })
+      : `${filesWord(jobs.length)} · ${formatDuration(totalDuration)}`;
     return;
   }
 
@@ -688,7 +710,7 @@ function updateTotals() {
   const doneCount = jobs.filter((j) => ['done', 'skipped', 'error', 'cancelled'].includes(j.status)).length;
   const etaText = formatEta(eta);
   $('#total-status').textContent =
-    `${doneCount} из ${jobs.length} · ${Math.round(fraction * 100)}%${etaText ? ` · ${etaText}` : ''}`;
+    `${doneCount} / ${jobs.length} · ${Math.round(fraction * 100)}%${etaText ? ` · ${etaText}` : ''}`;
 }
 
 // --- Onboarding screen ---
@@ -707,16 +729,17 @@ function renderOnboardingAnalysis() {
   const notes = new Map();
   for (const job of jobs) {
     for (const note of job.analysis.notes || []) {
-      notes.set(note, (notes.get(note) || 0) + 1);
+      const text = typeof note === 'string' ? note : t(note.id, note);
+      notes.set(text, (notes.get(text) || 0) + 1);
     }
   }
 
   const total = jobs.length;
-  const lines = [`<b>Посмотрел ${plural(total, 'файл', 'файла', 'файлов')}:</b>`];
+  const lines = [`<b>${t('onboarding.looked', { files: filesWord(total) })}</b>`];
   for (const [note, count] of notes) {
-    lines.push(`· ${escapeHtml(note)}${count < total ? ` (${count} из ${total})` : ''}`);
+    lines.push(`· ${escapeHtml(note)}${count < total ? ` (${count} / ${total})` : ''}`);
   }
-  if (notes.size === 0) lines.push('· всё в порядке, можно просто скопировать');
+  if (notes.size === 0) lines.push(`· ${t('onboarding.ok')}`);
 
   $('#onboarding-analysis-body').innerHTML = lines.map((l) => `<div>${l}</div>`).join('');
   box.hidden = false;
@@ -728,24 +751,44 @@ function showScreen(name) {
   $('#footer').hidden = name !== 'main';
 }
 
+function applyLocale() {
+  window.I18n.applyDom(locale());
+  $$('#lang-switch .lang__btn').forEach((btn) => {
+    btn.classList.toggle('is-active', btn.dataset.locale === locale());
+  });
+  document.title = t('app.name');
+  $('#env-info').textContent = state.env?.ffmpegVersion
+    ? `FFmpeg ${state.env.ffmpegVersion}`
+    : 'FFmpeg —';
+  renderOutputDir();
+  renderAllModeCards();
+  renderJobs();
+  renderOnboardingAnalysis();
+  updateTotals();
+  updateCrfHint();
+}
+
+async function setLocale(next) {
+  if (next === locale()) return;
+  await patchSettings({ locale: next });
+  applyLocale();
+}
+
 // --- Init ---
 
 async function init() {
   state.settings = await window.api.settings.get();
+  if (!state.settings.locale) state.settings.locale = 'ru';
   state.env = await window.api.appInfo();
 
   drawMascot('idle');
   initTooltips();
   applySettingsToUI();
   await refreshOutputDir();
-  renderAllModeCards();
-
-  $('#env-info').textContent = state.env.ffmpegVersion
-    ? `FFmpeg ${state.env.ffmpegVersion}`
-    : 'FFmpeg не найден';
+  applyLocale();
 
   if (!state.env.ffmpegVersion) {
-    toast('FFmpeg не найден, конвертация не заработает', 'error');
+    toast(t('toast.ffmpegMissing'), 'error');
   }
 
   showScreen('main');
@@ -758,6 +801,10 @@ function wireEvents() {
   $('#win-min').addEventListener('click', () => window.api.window.minimize());
   $('#win-max').addEventListener('click', () => window.api.window.maximize());
   $('#win-close').addEventListener('click', () => window.api.window.close());
+
+  $$('#lang-switch .lang__btn').forEach((btn) => {
+    btn.addEventListener('click', () => setLocale(btn.dataset.locale));
+  });
 
   $('#onboarding-confirm').addEventListener('click', async () => {
     await patchSettings({ onboarded: true });
@@ -772,7 +819,7 @@ function wireEvents() {
   });
 
   $('#pick-folder').addEventListener('click', async () => {
-    const folder = await window.api.dialog.pickFolder('Выберите папку с видео');
+    const folder = await window.api.dialog.pickFolder(t('dialog.pickVideos'));
     if (folder) await addPaths([folder]);
   });
 
@@ -790,15 +837,15 @@ function wireEvents() {
     renderJobs();
     renderAllModeCards();
     updateTotals();
-    toast(`Список очищен: ${plural(count, 'файл', 'файла', 'файлов')}`);
+    toast(t('toast.cleared', { files: filesWord(count) }));
   });
 
   $('#pick-output').addEventListener('click', async () => {
-    const folder = await window.api.dialog.pickFolder('Куда сохранять готовые MP4');
+    const folder = await window.api.dialog.pickFolder(t('dialog.pickOutput'));
     if (!folder) return;
 
     await patchSettings({ outputDir: folder });
-    if (await refreshOutputDir()) toast('Готовые видео лягут сюда', 'good');
+    if (await refreshOutputDir()) toast(t('out.ready'), 'good');
     else toast(state.outputDirReason, 'error');
   });
 
@@ -835,7 +882,7 @@ function wireEvents() {
   // Disabled inputs swallow their own clicks, so the locked sheet over the grid
   // is what actually reports back to the user.
   $('#advanced').addEventListener('click', (e) => {
-    if (state.running && e.target.closest('.advanced__grid')) toast(LOCKED_MESSAGE, 'error');
+    if (state.running && e.target.closest('.advanced__grid')) toast(lockedMessage(), 'error');
   });
 
   $('#opt-crf').addEventListener('input', updateCrfHint);
@@ -844,7 +891,7 @@ function wireEvents() {
   $('#btn-start').addEventListener('click', startConversion);
   $('#btn-cancel').addEventListener('click', () => {
     window.api.queue.cancel();
-    toast('Останавливаю…');
+    toast(t('footer.stopping'));
   });
   $('#btn-open-folder').addEventListener('click', () => {
     if (state.lastOutputPath) window.api.shell.openFolderOf(state.lastOutputPath);
@@ -858,7 +905,7 @@ function wireEvents() {
   });
 
   window.api.on('files:scanning', ({ current, total, name }) => {
-    $('#total-status').textContent = `Читаю ${current} из ${total}: ${name}`;
+    $('#total-status').textContent = t('footer.readingOne', { current, total, name });
   });
 
   window.api.on('queue:job', (job) => {
@@ -869,7 +916,7 @@ function wireEvents() {
   });
 
   window.api.on('queue:started', ({ total }) => {
-    toast(`Поехали: ${plural(total, 'файл', 'файла', 'файлов')}`);
+    toast(t('toast.go', { files: filesWord(total) }));
   });
 
   window.api.on('queue:finished', (summary) => {
@@ -888,15 +935,16 @@ function wireEvents() {
     }
 
     const parts = [];
-    if (summary.done) parts.push(`готово ${summary.done}`);
-    if (summary.failed) parts.push(`с ошибкой ${summary.failed}`);
-    if (summary.skipped) parts.push(`пропущено ${summary.skipped}`);
-    if (summary.cancelled) parts.push(`остановлено ${summary.cancelled}`);
-    toast(parts.join(', ') || 'Нечего было делать', summary.failed ? 'error' : 'good');
+    if (summary.done) parts.push(t('toast.done', { n: summary.done }));
+    if (summary.failed) parts.push(t('toast.fail', { n: summary.failed }));
+    if (summary.skipped) parts.push(t('toast.skip', { n: summary.skipped }));
+    if (summary.cancelled) parts.push(t('toast.cancel', { n: summary.cancelled }));
+    toast(parts.join(', ') || t('toast.nothing'), summary.failed ? 'error' : 'good');
   });
 
   window.api.on('window:state', ({ maximized }) => {
-    $('#win-max').title = maximized ? 'Свернуть в окно' : 'Развернуть';
+    $('#win-max').title = maximized ? t('win.restore') : t('win.max');
+    $('#win-max').setAttribute('aria-label', $('#win-max').title);
   });
 }
 
@@ -912,5 +960,5 @@ function scheduleRender() {
 }
 
 init().catch((err) => {
-  document.body.innerHTML = `<div style="padding:40px;font-family:monospace">Не удалось запустить интерфейс: ${escapeHtml(err.message)}</div>`;
+  document.body.innerHTML = `<div style="padding:40px;font-family:monospace">${escapeHtml(window.I18n.t('en', 'ui.fail', { message: err.message }))}</div>`;
 });

@@ -10,6 +10,7 @@ First public release.
 ### Added
 
 - Batch convert MTS / M2TS / TS to MP4 with a pink pixel-art UI
+- English and Russian interface (title-bar switch, Russian by default)
 - Lossless remux when the codecs already fit in MP4
 - Re-encode path that removes interlace combing and normalizes anamorphic pixels
 - Audio as original, AAC, or both tracks

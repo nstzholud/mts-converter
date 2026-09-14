@@ -99,11 +99,11 @@ npm start
 Installers:
 
 ```bash
-npm run build:mac           # dist/Konverter-MTS-1.0.2-arm64.dmg
-npm run build:win           # dist/Konverter-MTS-Setup-1.0.2.exe
+npm run build:mac           # dist/Konverter-MTS-1.0.3-arm64.dmg
+npm run build:win           # dist/Konverter-MTS-Setup-1.0.3.exe
 ```
 
-The Windows installer is also built by GitHub Actions on a `v*` tag.
+A `v*` tag builds both installers in GitHub Actions: the Windows `.exe` and the macOS `.dmg` (Apple Silicon).
 
 ## Versioning
 
@@ -114,7 +114,8 @@ The version lives in `package.json` and matches the release tag.
 | `1.0.0` | first public build |
 | `1.0.1` | Windows CI installer actually builds |
 | `1.0.2` | CI no longer fails on electron-builder’s implicit GitHub publish |
-| tag `v1.0.2` | same number, prefixed with `v` — Releases and Actions key off this |
+| `1.0.3` | tag builds both the Windows exe and the macOS dmg |
+| tag `v1.0.3` | same number, prefixed with `v` — Releases and Actions key off this |
 
 To ship the next one:
 
@@ -128,7 +129,7 @@ git push origin main
 git push origin v1.1.0
 ```
 
-The tag builds the Windows installer. The macOS DMG is built locally with `npm run build:mac`.
+The tag builds both installers. An Intel Mac DMG is still local: `npm run build:mac -- --intel`.
 
 ## Layout
 

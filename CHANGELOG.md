@@ -3,6 +3,14 @@
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Version numbers follow [SemVer](https://semver.org/).
 
+## [1.0.3] — 2026-09-14
+
+### Added
+
+- GitHub Actions now builds the macOS DMG (Apple Silicon) and attaches it to the same release as the Windows installer
+
+[1.0.3]: https://github.com/nstzholud/mts-converter/releases/tag/v1.0.3
+
 ## [1.0.2] — 2026-09-14
 
 ### Fixed

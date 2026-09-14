@@ -16,7 +16,7 @@ const TARGETS = {
     title: 'Windows installer',
     binary: 'vendor/win/ffmpeg.exe',
     vendorCommand: 'npm run vendor:win',
-    args: ['--win', '--x64'],
+    args: ['--win', '--x64', '--publish', 'never'],
     matches: (f) => f.startsWith('Konverter-MTS-Setup') && f.endsWith('.exe'),
   },
   mac: {
@@ -25,7 +25,7 @@ const TARGETS = {
     vendorCommand: 'npm run vendor:mac',
     // Must match the ffmpeg build in vendor/mac, or the app ends up with a
     // binary for the wrong architecture.
-    args: ['--mac', intel || process.arch === 'x64' ? '--x64' : '--arm64'],
+    args: ['--mac', intel || process.arch === 'x64' ? '--x64' : '--arm64', '--publish', 'never'],
     matches: (f) => f.startsWith('Konverter-MTS-') && f.endsWith('.dmg'),
   },
 };

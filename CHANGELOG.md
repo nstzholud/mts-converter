@@ -3,6 +3,14 @@
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Version numbers follow [SemVer](https://semver.org/).
 
+## [1.0.2] — 2026-09-14
+
+### Fixed
+
+- Windows CI: do not let electron-builder publish on a git tag (that needs `GH_TOKEN`). The workflow already attaches the exe to the GitHub Release.
+
+[1.0.2]: https://github.com/nstzholud/mts-converter/releases/tag/v1.0.2
+
 ## [1.0.1] — 2026-09-14
 
 ### Fixed

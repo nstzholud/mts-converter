@@ -99,8 +99,8 @@ npm start
 Installers:
 
 ```bash
-npm run build:mac           # dist/Konverter-MTS-1.0.1-arm64.dmg
-npm run build:win           # dist/Konverter-MTS-Setup-1.0.1.exe
+npm run build:mac           # dist/Konverter-MTS-1.0.2-arm64.dmg
+npm run build:win           # dist/Konverter-MTS-Setup-1.0.2.exe
 ```
 
 The Windows installer is also built by GitHub Actions on a `v*` tag.
@@ -113,7 +113,8 @@ The version lives in `package.json` and matches the release tag.
 | --- | --- |
 | `1.0.0` | first public build |
 | `1.0.1` | Windows CI installer actually builds |
-| tag `v1.0.1` | same number, prefixed with `v` — Releases and Actions key off this |
+| `1.0.2` | CI no longer fails on electron-builder’s implicit GitHub publish |
+| tag `v1.0.2` | same number, prefixed with `v` — Releases and Actions key off this |
 
 To ship the next one:
 

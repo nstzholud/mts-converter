@@ -3,6 +3,14 @@
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Version numbers follow [SemVer](https://semver.org/).
 
+## [1.0.1] — 2026-09-14
+
+### Fixed
+
+- Windows CI installer: run electron-builder through Node so the Unix `.bin` shim is not spawned on the runner
+
+[1.0.1]: https://github.com/nstzholud/mts-converter/releases/tag/v1.0.1
+
 ## [1.0.0] — 2026-09-14
 
 First public release.

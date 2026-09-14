@@ -57,9 +57,18 @@ Builds are on [Releases](https://github.com/nstzholud/mts-converter/releases).
 
 ### macOS
 
+This is a **Mac** app, not iPhone/iPad. The `.dmg` will not install on iOS.
+
 1. Download `Konverter-MTS-x.y.z-arm64.dmg` (Apple Silicon) or the `x64` build (Intel)
 2. Open the disk image and drag the app into **Applications**
-3. First launch: right-click → **Open**. Gatekeeper will complain about the ad-hoc signature. That is expected.
+3. First launch macOS may say the app is **damaged**. It is not — there is no Apple Developer signature, so Gatekeeper blocks the download. Open **Terminal** and run both lines. After that the app starts:
+
+```bash
+xattr -cr "/Applications/Конвертер MTS.app"
+open "/Applications/Конвертер MTS.app"
+```
+
+That is the working first-launch path. **System Settings → Privacy & Security → Open Anyway** is an alternative if you prefer not to use Terminal.
 
 ## How to use
 

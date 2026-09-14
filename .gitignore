@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+vendor/win/*
+vendor/mac/*
+!vendor/**/.gitkeep
+.DS_Store
+*.mp4
+*.part
+*.MTS
+*.mts
+*.m2ts
+*.m2t

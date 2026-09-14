@@ -1,0 +1,6 @@
+Шрифты в этой папке распространяются по лицензии SIL Open Font License 1.1.
+
+Press Start 2P — (c) CodeMan38, https://fonts.google.com/specimen/Press+Start+2P
+Tiny5          — (c) Nathan Chaffin, https://fonts.google.com/specimen/Tiny5
+
+Полный текст лицензии: https://openfontlicense.org/open-font-license-official-text/

@@ -1,0 +1,104 @@
+{
+  "name": "mts-converter",
+  "productName": "Конвертер MTS",
+  "version": "1.0.0",
+  "description": "Пакетная конвертация MTS/M2TS в MP4 без потери качества",
+  "main": "electron/main.js",
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nstzholud/mts-converter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nstzholud/mts-converter/issues"
+  },
+  "homepage": "https://github.com/nstzholud/mts-converter#readme",
+  "scripts": {
+    "start": "env -u ELECTRON_RUN_AS_NODE electron .",
+    "icon": "node scripts/make-icon.mjs",
+    "vendor:win": "node scripts/fetch-vendor.mjs",
+    "vendor:mac": "node scripts/fetch-vendor.mjs --mac",
+    "build:win": "node scripts/build.mjs win",
+    "build:mac": "node scripts/build.mjs mac"
+  },
+  "build": {
+    "appId": "com.mtsconverter.app",
+    "productName": "Конвертер MTS",
+    "copyright": "Конвертер MTS",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "afterPack": "scripts/sign-mac.cjs",
+    "files": [
+      "electron/**/*",
+      "renderer/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      "LICENSE",
+      "THIRD-PARTY-NOTICES.txt"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico",
+      "artifactName": "Konverter-MTS-Setup-${version}.${ext}",
+      "extraResources": [
+        {
+          "from": "vendor/win",
+          "to": "vendor/win"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Конвертер MTS",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "build/icon.icns",
+      "category": "public.app-category.video",
+      "artifactName": "Konverter-MTS-${version}-${arch}.${ext}",
+      "extraResources": [
+        {
+          "from": "vendor/mac",
+          "to": "vendor/mac"
+        }
+      ]
+    },
+    "dmg": {
+      "title": "Конвертер MTS",
+      "window": {
+        "width": 560,
+        "height": 380
+      },
+      "contents": [
+        {
+          "x": 150,
+          "y": 190,
+          "type": "file"
+        },
+        {
+          "x": 410,
+          "y": 190,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^26.15.3"
+  }
+}

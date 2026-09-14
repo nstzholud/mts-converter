@@ -3,6 +3,14 @@
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Version numbers follow [SemVer](https://semver.org/).
 
+## [1.0.4] — 2026-09-14
+
+### Changed
+
+- App and installer names are English: `MTS Converter.app`, `MTS-Converter-Setup-*.exe`, `MTS-Converter-*-arm64.dmg`
+
+[1.0.4]: https://github.com/nstzholud/mts-converter/releases/tag/v1.0.4
+
 ## [1.0.3] — 2026-09-14
 
 ### Added

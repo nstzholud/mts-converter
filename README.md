@@ -106,8 +106,8 @@ npm start
 Installers:
 
 ```bash
-npm run build:mac           # dist/MTS-Converter-1.0.3-arm64.dmg
-npm run build:win           # dist/MTS-Converter-Setup-1.0.3.exe
+npm run build:mac           # dist/MTS-Converter-1.0.4-arm64.dmg
+npm run build:win           # dist/MTS-Converter-Setup-1.0.4.exe
 ```
 
 A `v*` tag builds both installers in GitHub Actions: the Windows `.exe` and the macOS `.dmg` (Apple Silicon).
@@ -122,7 +122,8 @@ The version lives in `package.json` and matches the release tag.
 | `1.0.1` | Windows CI installer actually builds |
 | `1.0.2` | CI no longer fails on electron-builder’s implicit GitHub publish |
 | `1.0.3` | tag builds both the Windows exe and the macOS dmg |
-| tag `v1.0.3` | same number, prefixed with `v` — Releases and Actions key off this |
+| `1.0.4` | English app and installer names (`MTS Converter`) |
+| tag `v1.0.4` | same number, prefixed with `v` — Releases and Actions key off this |
 
 To ship the next one:
 

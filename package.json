@@ -1,7 +1,7 @@
 {
   "name": "mts-converter",
   "productName": "MTS Converter",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Batch-convert camera MTS/M2TS files to MP4 without losing quality",
   "author": "Anastasiya Zholudzeva",
   "main": "electron/main.js",

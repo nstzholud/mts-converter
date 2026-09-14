@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="README.ru.md">Русский</a> · English
+  <a href="README.ru.md">Russian</a> · English
 </p>
 
 <p align="center">
@@ -50,22 +50,20 @@ Builds are on [Releases](https://github.com/nstzholud/mts-converter/releases).
 
 ### Windows
 
-1. Download `Konverter-MTS-Setup-x.y.z.exe`
+1. Download `MTS-Converter-Setup-x.y.z.exe`
 2. Run it — a shortcut appears on the desktop and in the Start menu
 3. If SmartScreen warns about an unknown publisher: **More info → Run anyway**  
    There is no Microsoft signature. That is expected.
 
 ### macOS
 
-This is a **Mac** app, not iPhone/iPad. The `.dmg` will not install on iOS.
-
-1. Download `Konverter-MTS-x.y.z-arm64.dmg` (Apple Silicon) or the `x64` build (Intel)
+1. Download `MTS-Converter-x.y.z-arm64.dmg` (Apple Silicon) or the `x64` build (Intel)
 2. Open the disk image and drag the app into **Applications**
 3. First launch macOS may say the app is **damaged**. It is not — there is no Apple Developer signature, so Gatekeeper blocks the download. Open **Terminal** and run both lines. After that the app starts:
 
 ```bash
-xattr -cr "/Applications/Конвертер MTS.app"
-open "/Applications/Конвертер MTS.app"
+xattr -cr "/Applications/MTS Converter.app"
+open "/Applications/MTS Converter.app"
 ```
 
 That is the working first-launch path. **System Settings → Privacy & Security → Open Anyway** is an alternative if you prefer not to use Terminal.
@@ -108,8 +106,8 @@ npm start
 Installers:
 
 ```bash
-npm run build:mac           # dist/Konverter-MTS-1.0.3-arm64.dmg
-npm run build:win           # dist/Konverter-MTS-Setup-1.0.3.exe
+npm run build:mac           # dist/MTS-Converter-1.0.3-arm64.dmg
+npm run build:win           # dist/MTS-Converter-Setup-1.0.3.exe
 ```
 
 A `v*` tag builds both installers in GitHub Actions: the Windows `.exe` and the macOS `.dmg` (Apple Silicon).

@@ -53,14 +53,14 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: konverter-mts-windows
-          path: dist/Konverter-MTS-Setup-*.exe
+          path: dist/MTS-Converter-Setup-*.exe
           retention-days: 30
 
       - name: Attach installer to the GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/Konverter-MTS-Setup-*.exe
+          files: dist/MTS-Converter-Setup-*.exe
           generate_release_notes: true
 
   macos:
@@ -85,12 +85,12 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: konverter-mts-macos
-          path: dist/Konverter-MTS-*.dmg
+          path: dist/MTS-Converter-*.dmg
           retention-days: 30
 
       - name: Attach disk image to the GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/Konverter-MTS-*.dmg
+          files: dist/MTS-Converter-*.dmg
           generate_release_notes: false

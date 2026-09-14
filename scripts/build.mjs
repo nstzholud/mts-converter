@@ -17,7 +17,7 @@ const TARGETS = {
     binary: 'vendor/win/ffmpeg.exe',
     vendorCommand: 'npm run vendor:win',
     args: ['--win', '--x64', '--publish', 'never'],
-    matches: (f) => f.startsWith('Konverter-MTS-Setup') && f.endsWith('.exe'),
+    matches: (f) => f.startsWith('MTS-Converter-Setup') && f.endsWith('.exe'),
   },
   mac: {
     title: 'macOS disk image',
@@ -26,7 +26,7 @@ const TARGETS = {
     // Must match the ffmpeg build in vendor/mac, or the app ends up with a
     // binary for the wrong architecture.
     args: ['--mac', intel || process.arch === 'x64' ? '--x64' : '--arm64', '--publish', 'never'],
-    matches: (f) => f.startsWith('Konverter-MTS-') && f.endsWith('.dmg'),
+    matches: (f) => f.startsWith('MTS-Converter-') && f.endsWith('.dmg'),
   },
 };
 
